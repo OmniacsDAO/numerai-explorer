@@ -2,6 +2,7 @@
 
 # Numerai Tournament Training Data Explorer
 > R Shiny Web Interface for Exploring Numerai Tournament Training Data
+
 Numerai is a crowdsourced hedgefund that hosts machine learning tournaments which attract thousands of data scientists around the world to compete for 
 Numeraire cryptocurrency. The company provides clean, regularized, and obfuscated data, where anyone with expertise in machine learning can freely participate.
 
