@@ -16,7 +16,7 @@ We are hosting our own instance of the app at the following URL:
 
 https://crypto.omnianalytics.io/apps/numerai/
     
-For optimal performance, you can run your own instance of the app. This requires R 4.3.x and associated R packages.
+For optimal performance, you can run your own instance of the app. This requires the latest R 4.0.3 and associated R packages.
 
 ## Installing Dependencies
 
