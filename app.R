@@ -9,6 +9,70 @@ library(DT)
 library(stringr)
 library(promises)
 library(future)
+# 
+# correlations_by_era <- training_data %>%
+#   dplyr::select(era, target, starts_with("feature_")) %>%
+#   mutate(era = as.numeric(era)) %>%
+#   split(.$era) %>%
+#   purrr::map(function(x) {
+#     y <- x %>% dplyr::select(-era)
+#     res <- cor(y)[1,]
+#     res <- c(x$era[1], tail(res, -1))
+#     
+#     return(res)
+#   }) %>%
+#   bind_rows() %>%
+#   t %>%
+#   as_tibble()
+# 
+# names(correlations_by_era) <- training_data %>%
+#   dplyr::select(era, starts_with("feature_")) %>%
+#   names()
+# 
+# write_csv(correlations_by_era, "data/correlations.csv")
+# q1 <- function(x) quantile(x, .25)
+# q3 <- function(x) quantile(x, .75)
+# 
+# summary <- training_data %>%
+#   dplyr::select(starts_with("feature_")) %>%
+#   summarise(across(everything(), list(mean = mean, sd = sd, q1 = q1, q3 = q3, min = min, max = max, median = median))) %>%
+#   gather(key = feature, value = value) %>%
+#   mutate(stat = gsub(".*\\_([a-z0-9]+)$", "\\1", feature),
+#          feature = gsub("(.*)\\_[a-z0-9]+$", "\\1", feature)) %>%
+#   spread(key = stat, value = value) %>%
+#   dplyr::select(feature, mean, sd, min, q1, median, q3, max)
+# 
+# write_csv(summary, "data/summary_features.csv")
+
+# era_table <- training_data %>%
+#   mutate(era = as.numeric(era)) %>%
+#   group_by(era) %>%
+#   summarise(n = n())
+# 
+# write_csv(era_table, "data/era_table.csv")
+
+# target_mean_by_era <- training_data %>%
+#   mutate(era = as.numeric(era)) %>%
+#   group_by(era) %>%
+#   summarise(Mean = mean(target))
+# 
+# write_csv(target_mean_by_era, "data/target_mean_by_era.csv")
+
+# target_proportion_by_era <- training_data %>%
+#   mutate(era = as.numeric(era)) %>%
+#   group_by(era, target) %>%
+#   summarise(count = n()) %>%
+#   group_by(era) %>%
+#   mutate(Proportion = count / sum(count))
+# 
+# write_csv(target_proportion_by_era, "data/target_proportion_by_era.csv")
+
+# column_names <- training_data %>%
+#   filter(era == "fake")
+# 
+# write_csv(column_names, "data/column_names.csv")
+
+# save(training_data, file = "data/training_data.RData")
 
 #import data
 correlations_by_era <- read.csv("data/correlations.csv", header=T)
@@ -20,9 +84,7 @@ column_names <- read.csv("data/column_names.csv", header=T)
 
 
 #change column names of summary statistcs of features
-names(summary)[5:11] <- c("Mean", "Standard Deviation", "Minimum", "First Quartile", "Median", "Third Quartile", "Maximum")
-#create category in summary table
-summary$category<-ifelse(startsWith(summary$skim_variable, 'feature_intelligence') ,'Intelligence',ifelse(startsWith(summary$skim_variable, 'feature_charisma'),'Charisma', ifelse(startsWith(summary$skim_variable, 'feature_strength'), 'Strength', ifelse(startsWith(summary$skim_variable, 'feature_dexterity'), 'Dexterity', ifelse(startsWith(summary$skim_variable, 'feature_constitution'),'Constitution', 'Wisdom')))))
+names(summary)[2:8] <- c("Mean", "Standard Deviation", "Minimum", "First Quartile", "Median", "Third Quartile", "Maximum")
 
 target_proportion_by_era$target = as.factor(target_proportion_by_era$target)
 
@@ -74,8 +136,7 @@ ui <-fluidPage(theme = shinytheme("cerulean"),
                            tabPanel("Summary Statistics",
                                     sidebarLayout(
                                       sidebarPanel(
-                                        varSelectInput("sum_stat", "Distribution of Summary Statistics of the Features:", summary[5:11]),
-                                        checkboxInput("category", "Category:", FALSE)
+                                        varSelectInput("sum_stat", "Distribution of Summary Statistics of the Features:", summary[2:8]),
                                       ),
                                       # Show summary table and histogram
                                       mainPanel(
@@ -184,7 +245,7 @@ server <- function(input, output) {
   mydata <- reactive({
     load("data/training_data.RData")
     
-    return(dat)
+    return(training_data)
   })
 
   output$training <- renderDataTable({
@@ -197,17 +258,9 @@ server <- function(input, output) {
   })    
   
   output$summaryplot <- renderPlot({
-    if (input$category){ggplot(summary, aes_string(x=input$sum_stat, fill = "category")) + 
-        geom_histogram(color="grey60")+
-        labs(title=paste0("Distribution of ", input$sum_stat),x=input$sum_stat, y = "Frequency") +
-        facet_wrap(~category) +
-        theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 9, hjust = 1))
-      
-    } else {
       ggplot(summary, aes_string(x=input$sum_stat)) + 
         geom_histogram(fill = "#EA5600", color="grey")+
         labs(title=paste0("Distribution of ", input$sum_stat),x=input$sum_stat, y = "Frequency")        
-    }
   })
   
   output$distribution1 <- renderPlot({
