@@ -106,27 +106,21 @@ ui <-fluidPage(theme = shinytheme("cerulean"),
                                 samples to help novice data scientists get started. To get access to the data 
                                 simply visit the <a href='https://numer.ai/'>official Numerai website</a>. </p>
                                 
-                                <p>In a recent development, starting in round 238 and continuing onward, 
-                                the target of interest migrated from 'Kazutsugi' to the newer 'Nomi'. 
-                                This application was developed to help new tournament participants explore 
-                                this new target and its covariates.</p>
-                                
-                                <p>The training_data is 1.3 GB and contains information on 501808 rows 
-                                across 314 columns. The first three columns are as follow: </p>
+                                <p>The training_data is 10.7 GB and contains information on 2,412,105 rows across 1074 columns.
+                                The first two columns are as follows:</p>
                                 <ul>
-                                <li> 'id' - an unique identifier of each row </li>
-                                <li> 'era' - a time period corresponding to a trading day </li>
-                                <li> 'data_type' - indication of whether the row is part of train/test/validation/live </li>
+                                <li>'era' - a time period corresponding to a trading day</li>
+                                <li>'data_type' - indication of whether the row is part of train/test/validation/live</li>
                                 </ul>
                                 
-                                <p> These three columns are then followed by 310 features columns and 
-                                     the last column for the 'Nomi' target. </p> ")
+                                <p>These three columns are then followed by 1050 features columns, the target column as well as 20 more target columns, and an identifier column.</p> ")
                                 
                                ),
                                
                                # Show Data
                                mainPanel( 
-                                 withSpinner(dataTableOutput("training"))
+                                 withSpinner(dataTableOutput("training")),
+                                 h4("Note: Data shown is subsetted to a 0.1% sample to show structure and maintain app performance.")
                                )
                 )),
                 
@@ -313,14 +307,14 @@ server <- function(input, output) {
     ggplot(data = era_table, aes(x = era, y = n, group = 1)) +
       geom_line()+
       scale_y_continuous(breaks = scales::pretty_breaks(n=10))+
-      scale_x_continuous(breaks = seq(0, 120, by = 10))+
+      scale_x_continuous(breaks = scales::pretty_breaks(n=15))+
       labs(title="Number of rows corresponding to each era", y="Frequency")
   })
   
   output$targetmean <- renderPlot({
     ggplot(data=target_mean_by_era, aes(x=era, y=Mean))+
       geom_line()+
-      scale_x_continuous(breaks = seq(0, 120, by = 10))+
+      scale_x_continuous(breaks = scales::pretty_breaks(n=15))+
       labs(title = "Mean of target across eras", x="era")+
       geom_smooth(se=FALSE)
   })
@@ -329,7 +323,7 @@ server <- function(input, output) {
     ggplot(data=target_proportion_by_era, aes(x=era, y=Proportion, color=target))+
       geom_line(aes(group=target), size=0.5)+
       labs(title="Proportion of the target across eras")+
-      scale_x_continuous(breaks = seq(0, 120, by = 10))+
+      scale_x_continuous(breaks = scales::pretty_breaks(n=15))+
       scale_y_continuous(breaks = seq(0, 1, by = 0.1))
   })
   
@@ -343,14 +337,14 @@ server <- function(input, output) {
       ggplot(aes(x=era, y=Cor))+
         geom_line()+
         labs(title=paste0("Correlation of ",input$feature1," and ",input$feature2 ," across era"), y="Correlation")+
-        scale_y_continuous(breaks = scales::pretty_breaks(n=10))+geom_smooth(se=FALSE)       
+        scale_y_continuous(breaks = scales::pretty_breaks(n=10))+scale_x_continuous(breaks = scales::pretty_breaks(n=15))+geom_smooth(se=FALSE)       
     } else{
       mydat %>% mutate(era = as.numeric(str_extract(era, "[^era]+$"))) %>% group_by(era) %>% 
         summarise(Cor=cor(eval(parse(text=input$feature1)),eval(parse(text=input$feature2)))) %>%
         ggplot(aes(x=era, y=Cor))+
         geom_line()+
         labs(title=paste0("Correlation of ",input$feature1," and ",input$feature2 ," across era"), y="Correlation")+
-        scale_y_continuous(breaks = scales::pretty_breaks(n=10))
+        scale_y_continuous(breaks = scales::pretty_breaks(n=10))+scale_x_continuous(breaks = scales::pretty_breaks(n=15))
     }
     
   })
@@ -361,14 +355,14 @@ server <- function(input, output) {
         geom_line()+
         labs(title=paste0("Correlation of ", input$feature ," and the target across era"), y="Correlation")+
         scale_y_continuous(breaks = scales::pretty_breaks(n=10))+
-        scale_x_continuous(breaks = seq(0, 120, by = 5))+geom_smooth(se=FALSE)            
+        scale_x_continuous(breaks = scales::pretty_breaks(n=15))+geom_smooth(se=FALSE)            
       
     } else {
       ggplot(data=correlations_by_era, aes_string(x="era", y=input$feature))+
         geom_line()+
         labs(title=paste0("Correlation of ", input$feature ," and the target across era"), y="Correlation")+
         scale_y_continuous(breaks = scales::pretty_breaks(n=10))+
-        scale_x_continuous(breaks = seq(0, 120, by = 5)) 
+        scale_x_continuous(breaks = scales::pretty_breaks(n=15)) 
     }
     
   })
